@@ -13,11 +13,20 @@ access_token_secret = "wcGXUWREbycIREGJOk4ZtdnsWDHGXTTG6WLZKlR5ppEaC"
 class StdOutListener(StreamListener):
 
     def on_data(self, data):
-        print data
-        return True
+    	print data
+    	return True
+	
+	def on_error(self, status_code):
+		print "Error: " + repr(status_code)
+	# 	return True # False to stop
 
-    def on_error(self, status):
-        print status
+    def on_limit(self, track):
+    	print "!!! Limitation notice received: %s" % str(track)
+    	return
+
+	def on_timeout(self):
+		print 'Timeout... Quitting'
+		return True
 
 
 l = StdOutListener()
@@ -26,7 +35,6 @@ auth.set_access_token(access_token, access_token_secret)
 stream = Stream(auth, l)
 
 #This line filter Twitter Streams to capture data by the keywords: 'python', 'javascript', 'ruby'
-track_list = None
-follow_list = "19564719"
-stream.filter(follow=follow_list)
-#stream.filter(track=track_list)
+print 'Starting....'
+
+stream.filter(locations=[-180,-90,180,90])
