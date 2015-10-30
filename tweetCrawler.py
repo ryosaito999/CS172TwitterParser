@@ -3,8 +3,11 @@ from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
 import sys
+import re
 import threading
 import json
+import urllib
+
 
 
 consumer_key = "DR2sdWrsfQBWw6jVapZA9N6kN"
@@ -25,15 +28,19 @@ class FuncThread(threading.Thread):
  
     # Example usage
 def printTweet(data):
-    #modifiy data here!
-    #print data
-    tweetInfo = data.split("\"")
-    print tweetInfo
+    print data
+
+    #check data here!
+    #run all strings inside .html checker
+
+    match = re.search(r'(https|http):.*(\.html|\.htm)', data)
+    if match is not None:
+        print "aaaaaaaaaaaaaaaaa"
+        print match
 
 
-def searchInfo(tweetInfo)
-    
-    
+# def searchInfo(tweetInfo)
+          
     
 
 
@@ -41,9 +48,10 @@ class StdOutListener(StreamListener):
 
     def on_data(self, data):
     	#data contains all data about each tweet. Parse this in a new thread
-        t1 = FuncThread(printTweet, data)
-        t1.start()
-        t1.join()
+        # t1 = FuncThread(printTweet, data)
+        # t1.start()
+        # t1.join()
+        printTweet(data)
         return True
 
     def on_error(self, status_code):
