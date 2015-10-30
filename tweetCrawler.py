@@ -7,6 +7,9 @@ import re
 import threading
 import json
 import urllib
+import urllib2
+from BeautifulSoup import BeautifulSoup
+
 
 
 
@@ -28,19 +31,18 @@ class FuncThread(threading.Thread):
  
     # Example usage
 def printTweet(data):
-    print data
+    #print data
 
     #check data here!
     #run all strings inside .html checker
+    listTokens = data.split("\"")
+    for s in listTokens:
+        match = re.search(r'(https|http).*(.html|.htm)', s)
+        if match:
 
-    match = re.search(r'(https|http):.*(\.html|\.htm)', data)
-    if match is not None:
-        print "aaaaaaaaaaaaaaaaa"
-        print match
-
-
-# def searchInfo(tweetInfo)
-          
+            print "HTML_LINK: %s" % match.group(0) 
+            #print "TITLE : %s" % title
+              
     
 
 
@@ -62,17 +64,17 @@ class StdOutListener(StreamListener):
     	print "!!! Limitation notice received: %s" % str(track)
     	return
 
-	def on_timeout(self):
-		print 'Timeout... Quitting'
-		return True
+	# def on_timeout(self):
+	# 	print 'Timeout... Quitting'
+	# 	return True
 
 
 print 'Starting....'
 
 #FILL TEXT FILE WITH TWEETS
-# orig_stdout = sys.stdout
-# f = file('tweets.txt', 'w')
-# sys.stdout = f
+orig_stdout = sys.stdout
+f = file('tweets.txt', 'w')
+sys.stdout = f
 
 l = StdOutListener()
 auth = OAuthHandler(consumer_key, consumer_secret)
@@ -84,8 +86,8 @@ stream.filter(locations=[-180,-90,180,90])
 # stream.filter(track=['python', 'javascript', 'ruby'])
 
 
-# sys.stdout = orig_stdout
-# f.close()
+sys.stdout = orig_stdout
+f.close()
 
 print 'Closed!....'
 
