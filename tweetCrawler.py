@@ -31,7 +31,7 @@ class FuncThread(threading.Thread):
  
     # Example usage
 def printTweet(data):
-    #print data
+    print data
 
     #check data here!
     #run all strings inside .html checker
@@ -39,11 +39,18 @@ def printTweet(data):
     for s in listTokens:
         match = re.search(r'(https|http).*(.html|.htm)', s)
         if match:
+            link = match.group(0).replace("\\" , "")    
+            print "HTML_LINK: %s" % link 
 
-            print "HTML_LINK: %s" % match.group(0) 
-            #print "TITLE : %s" % title
-              
-    
+
+            response = urllib2.urlopen(link)
+            soup = BeautifulSoup(response.read())
+            title = soup.find('title').text
+            print "HTML_TITLE: %s" % title 
+
+
+
+
 
 
 class StdOutListener(StreamListener):
