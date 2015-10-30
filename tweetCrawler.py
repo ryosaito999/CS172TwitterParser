@@ -9,6 +9,8 @@ import json
 import urllib
 import urllib2
 from BeautifulSoup import BeautifulSoup
+import codecs
+import sys
 
 
 
@@ -19,6 +21,8 @@ consumer_secret = "PoAOScmZOWpGkZ6qJoz6tIZn1Q7NdzieoGwQwlQmQsJObQLN5M"
 access_token = "3941462833-jwJS09AoJz1cRTpT7jzjQBJtjLA2ukRjYxzPKGH"
 access_token_secret = "wcGXUWREbycIREGJOk4ZtdnsWDHGXTTG6WLZKlR5ppEaC"
 
+file_name = "tweets.txt"
+
  
 class FuncThread(threading.Thread):
     def __init__(self, target, *args):
@@ -28,6 +32,15 @@ class FuncThread(threading.Thread):
  
     def run(self):
         self._target(*self._args)
+
+def unicodeConvert(text):
+    try:
+        text = unicode(text, 'utf-8')
+    except TypeError:
+        if text:
+            return text
+        else:
+            return "None"
  
     # Example usage
 def printTweet(data):
@@ -37,18 +50,23 @@ def printTweet(data):
     #run all strings inside .html checker
     listTokens = data.split("\"")
     for s in listTokens:
-        match = re.search(r'(https|http).*(.html|.htm)', s)
+        match = re.search(r'(https|http).*(\.html|\.htm)', s)
+      
         if match:
             link = match.group(0).replace("\\" , "")    
             print "HTML_LINK: %s" % link 
 
-
-            response = urllib2.urlopen(link)
-            soup = BeautifulSoup(response.read())
-            title = soup.find('title').text
-            print "HTML_TITLE: %s" % title 
-
-
+            try:
+                response = urllib2.urlopen(link)
+            except Exception, e:
+                print "403"
+            else:
+                soup = BeautifulSoup(response.read())
+                title = soup.find('title')
+             
+                if title:
+                    title = unicode(title)
+                    print "HTML_TITLE: %s" % title
 
 
 
@@ -80,8 +98,8 @@ print 'Starting....'
 
 #FILL TEXT FILE WITH TWEETS
 orig_stdout = sys.stdout
-f = file('tweets.txt', 'w')
-sys.stdout = f
+
+
 
 l = StdOutListener()
 auth = OAuthHandler(consumer_key, consumer_secret)
