@@ -81,7 +81,7 @@ class StdOutListener(StreamListener):
         # t1.join()
         statinfo = os.stat(file_name)
 
-        if(statinfo.st_size >= 1000000): 
+        if(statinfo.st_size >= 10000000): 
             global counter
             sys.stdout = open("tweets" + str(counter) + ".txt", 'w')
             counter+= 1
