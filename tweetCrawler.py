@@ -66,8 +66,8 @@ def printTweet(data):
                     title = unicode(title)
 
     
-    # k = data.rfind("}")
-    # data = data[:k] + ",\"HTML_PAGE_TITLE\": \" " + unicode(title) + "\"}"  + data[k+1:]
+    k = data.rfind("}")
+    data = data[:k] + ",\"HTML_PAGE_TITLE\": \" " + unicode(title) + "\"}"  + data[k+1:]
     print data
 
 
