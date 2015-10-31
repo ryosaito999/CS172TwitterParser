@@ -21,6 +21,7 @@ access_token_secret = "wcGXUWREbycIREGJOk4ZtdnsWDHGXTTG6WLZKlR5ppEaC"
 
 file_name = "tweets.txt"
 counter = 1
+f = ""
  
 class FuncThread(threading.Thread):
     def __init__(self, target, *args):
@@ -45,6 +46,7 @@ def printTweet(data):
 
     #check data here!
     #run all strings inside .html checker
+    global f
     listTokens = data.split("\"")
     title = ""
     for s in listTokens:
@@ -52,7 +54,7 @@ def printTweet(data):
       
         if match:
             link = match.group(0).replace("\\" , "")    
-            print "HTML_LINK: %s" % link 
+            # print "HTML_LINK: %s" % link 
 
             try:
                 response = urllib2.urlopen(link)
@@ -62,13 +64,13 @@ def printTweet(data):
                 soup = BeautifulSoup(response.read())
                 title = soup.find('title')
              
-                if title:
-                    title = unicode(title)
-
+                if title is None:
+                    title = ""
     
     k = data.rfind("}")
-    data = data[:k] + ",\"HTML_PAGE_TITLE\": \" " + unicode(title) + "\"}"  + data[k+1:]
-    print data
+    data = data[:k] + ",\"HTML_PAGE_TITLE\": \" " + str(title) + "\"}"  + data[k+1:]
+    f.write(data)
+    f.write('\n')
 
 
 
@@ -80,12 +82,14 @@ class StdOutListener(StreamListener):
         # t1.start()
         # t1.join()
         global file_name
+        global f
         statinfo = os.stat(file_name)
 
         if(statinfo.st_size >= 10000000): 
+            f.close()
             global counter
             file_name = "tweets" + str(counter) + ".txt"
-            sys.stdout = open(file_name, 'w')
+            f = open(file_name, 'w')
             counter+= 1
 
 
@@ -110,7 +114,10 @@ print 'Starting....'
 #FILL TEXT FILE WITH TWEETS
 orig_stdout = sys.stdout
 global file_name
-sys.stdout = open(file_name, 'w')
+global f
+f = open(file_name, 'w')
+
+
 l = StdOutListener()
 auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
