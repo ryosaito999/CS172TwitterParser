@@ -11,9 +11,7 @@ import urllib2
 from BeautifulSoup import BeautifulSoup
 import codecs
 import sys
-
-
-
+import os
 
 consumer_key = "DR2sdWrsfQBWw6jVapZA9N6kN"
 consumer_secret = "PoAOScmZOWpGkZ6qJoz6tIZn1Q7NdzieoGwQwlQmQsJObQLN5M"
@@ -22,7 +20,7 @@ access_token = "3941462833-jwJS09AoJz1cRTpT7jzjQBJtjLA2ukRjYxzPKGH"
 access_token_secret = "wcGXUWREbycIREGJOk4ZtdnsWDHGXTTG6WLZKlR5ppEaC"
 
 file_name = "tweets.txt"
-
+counter = 1
  
 class FuncThread(threading.Thread):
     def __init__(self, target, *args):
@@ -44,11 +42,11 @@ def unicodeConvert(text):
  
     # Example usage
 def printTweet(data):
-    print data
 
     #check data here!
     #run all strings inside .html checker
     listTokens = data.split("\"")
+    title = ""
     for s in listTokens:
         match = re.search(r'(https|http).*(\.html|\.htm)', s)
       
@@ -59,15 +57,18 @@ def printTweet(data):
             try:
                 response = urllib2.urlopen(link)
             except Exception, e:
-                print "403"
+                title =  "403"
             else:
                 soup = BeautifulSoup(response.read())
                 title = soup.find('title')
              
                 if title:
                     title = unicode(title)
-                    print "HTML_TITLE: %s" % title
 
+    
+    # k = data.rfind("}")
+    # data = data[:k] + ",\"HTML_PAGE_TITLE\": \" " + unicode(title) + "\"}"  + data[k+1:]
+    print data
 
 
 
@@ -78,6 +79,14 @@ class StdOutListener(StreamListener):
         # t1 = FuncThread(printTweet, data)
         # t1.start()
         # t1.join()
+        statinfo = os.stat(file_name)
+
+        if(statinfo.st_size >= 1000000): 
+            global counter
+            sys.stdout = open("tweets" + str(counter) + ".txt", 'w')
+            counter+= 1
+
+
         printTweet(data)
         return True
 
@@ -98,7 +107,7 @@ print 'Starting....'
 
 #FILL TEXT FILE WITH TWEETS
 orig_stdout = sys.stdout
-
+sys.stdout = open("tweets.txt", 'w')
 
 
 l = StdOutListener()
