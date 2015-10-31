@@ -79,11 +79,13 @@ class StdOutListener(StreamListener):
         # t1 = FuncThread(printTweet, data)
         # t1.start()
         # t1.join()
+        global file_name
         statinfo = os.stat(file_name)
 
         if(statinfo.st_size >= 10000000): 
             global counter
-            sys.stdout = open("tweets" + str(counter) + ".txt", 'w')
+            file_name = "tweets" + str(counter) + ".txt"
+            sys.stdout = open(file_name, 'w')
             counter+= 1
 
 
@@ -107,9 +109,8 @@ print 'Starting....'
 
 #FILL TEXT FILE WITH TWEETS
 orig_stdout = sys.stdout
-sys.stdout = open("tweets.txt", 'w')
-
-
+global file_name
+sys.stdout = open(file_name, 'w')
 l = StdOutListener()
 auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
