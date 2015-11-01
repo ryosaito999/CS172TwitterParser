@@ -22,6 +22,10 @@ access_token_secret = "wcGXUWREbycIREGJOk4ZtdnsWDHGXTTG6WLZKlR5ppEaC"
 file_name = "tweets.txt"
 counter = 1
 f = ""
+
+t1 = ""
+lock = threading.Lock()
+
  
 class FuncThread(threading.Thread):
     def __init__(self, target, *args):
@@ -32,46 +36,61 @@ class FuncThread(threading.Thread):
     def run(self):
         self._target(*self._args)
 
-def unicodeConvert(text):
+
+def loookUpLink(match, data):
+
+    if data is None:
+        return
+
+    link = match.group(0).replace("\\" , "")    
+    # print "HTML_LINK: %s" % link 
+
     try:
-        text = unicode(text, 'utf-8')
-    except TypeError:
-        if text:
-            return text
-        else:
-            return "None"
- 
+        response = urllib2.urlopen(link)
+    except Exception, e:
+        title =  "403"
+    else:
+        soup = BeautifulSoup(response.read())
+        title = soup.find('title')
+     
+        if title is None:
+            title = ""
+
+    appendTitle(title, data)
+
+def appendTitle(title, data):
+
+    global f
+
+    k = data.rfind("}")
+    data = data[:k] + ",\"HTML_PAGE_TITLE\": \" " + str(title) + "\"}"  + data[k+1:]
+    lock.acquire() # thread blocks at this line until it can obtain lock
+    f.write(data)
+    f.write('\n')
+    lock.release()
+
+
     # Example usage
 def printTweet(data):
 
+
     #check data here!
     #run all strings inside .html checker
-    global f
     listTokens = data.split("\"")
     title = ""
+    foundTitle = False
+
     for s in listTokens:
         match = re.search(r'(https|http).*(\.html|\.htm)', s)
       
         if match:
-            link = match.group(0).replace("\\" , "")    
-            # print "HTML_LINK: %s" % link 
+            t1 = FuncThread(loookUpLink, match, data)
+            t1.start()
+            foundTitle = True
 
-            try:
-                response = urllib2.urlopen(link)
-            except Exception, e:
-                title =  "403"
-            else:
-                soup = BeautifulSoup(response.read())
-                title = soup.find('title')
-             
-                if title is None:
-                    title = ""
-    
-    k = data.rfind("}")
-    data = data[:k] + ",\"HTML_PAGE_TITLE\": \" " + str(title) + "\"}"  + data[k+1:]
-    f.write(data)
-    f.write('\n')
 
+    if foundTitle is False:
+        appendTitle(title, data)
 
 
 class StdOutListener(StreamListener):
@@ -83,9 +102,14 @@ class StdOutListener(StreamListener):
         # t1.join()
         global file_name
         global f
+        global t1
         statinfo = os.stat(file_name)
 
         if(statinfo.st_size >= 10000000): 
+            
+            if t1 is not "":
+                t1.join()
+
             f.close()
             global counter
             file_name = "tweets" + str(counter) + ".txt"
