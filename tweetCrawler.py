@@ -22,7 +22,6 @@ access_token_secret = "wcGXUWREbycIREGJOk4ZtdnsWDHGXTTG6WLZKlR5ppEaC"
 file_name = "tweets.txt"
 counter = 1
 f = ""
-
 t1 = ""
 lock = threading.Lock()
 
@@ -43,18 +42,20 @@ def loookUpLink(match, data):
         return
 
     link = match.group(0).replace("\\" , "")    
-    # print "HTML_LINK: %s" % link 
 
     try:
         response = urllib2.urlopen(link)
     except Exception, e:
+        #403 errors mean request was rejected 
         title =  "403"
     else:
+        #beatiful soup to get URL data
         soup = BeautifulSoup(response.read())
         title = soup.find('title')
      
         if title is None:
             title = ""
+
 
     appendTitle(title, data)
 
@@ -63,9 +64,16 @@ def appendTitle(title, data):
     global f
 
     k = data.rfind("}")
-    data = data[:k] + ",\"HTML_PAGE_TITLE\": \" " + str(title) + "\"}"  + data[k+1:]
+    dataAppended = data[:k] + ",\"HTML_PAGE_TITLE\": \" " + str(title) + "\"}"  + data[k+1:]
     lock.acquire() # thread blocks at this line until it can obtain lock
-    f.write(data)
+    
+    try:
+        f.write(dataAppended)
+
+    except Exception, e:
+        f.write(data)
+
+
     f.write('\n')
     lock.release()
 
@@ -76,6 +84,7 @@ def printTweet(data):
 
     #check data here!
     #run all strings inside .html checker
+    global t1
     listTokens = data.split("\"")
     title = ""
     foundTitle = False
@@ -84,6 +93,7 @@ def printTweet(data):
         match = re.search(r'(https|http).*(\.html|\.htm)', s)
       
         if match:
+            #pass data into thread for lookup
             t1 = FuncThread(loookUpLink, match, data)
             t1.start()
             foundTitle = True
@@ -96,24 +106,25 @@ def printTweet(data):
 class StdOutListener(StreamListener):
 
     def on_data(self, data):
-    	#data contains all data about each tweet. Parse this in a new thread
-        # t1 = FuncThread(printTweet, data)
-        # t1.start()
-        # t1.join()
+
         global file_name
         global f
         global t1
         statinfo = os.stat(file_name)
 
+        #if file is > 10MB
         if(statinfo.st_size >= 10000000): 
             
-            if t1 is not "":
+            #if t1 is alive, wait for t1 to finish printing our url title and then close
+            if t1.is_alive():
                 t1.join()
 
             f.close()
             global counter
+            #open new file 
             file_name = "tweets" + str(counter) + ".txt"
             f = open(file_name, 'w')
+            print "opened file: " + file_name
             counter+= 1
 
 
@@ -141,6 +152,7 @@ global file_name
 global f
 f = open(file_name, 'w')
 
+print "Starting"
 
 l = StdOutListener()
 auth = OAuthHandler(consumer_key, consumer_secret)
