@@ -19,7 +19,7 @@ consumer_secret = "PoAOScmZOWpGkZ6qJoz6tIZn1Q7NdzieoGwQwlQmQsJObQLN5M"
 access_token = "3941462833-jwJS09AoJz1cRTpT7jzjQBJtjLA2ukRjYxzPKGH"
 access_token_secret = "wcGXUWREbycIREGJOk4ZtdnsWDHGXTTG6WLZKlR5ppEaC"
 
-file_name = "tweets.txt"
+file_name = "data/tweets.txt"
 counter = 1
 f = ""
 t1 = ""
@@ -122,7 +122,7 @@ class StdOutListener(StreamListener):
             f.close()
             global counter
             #open new file 
-            file_name = "tweets" + str(counter) + ".txt"
+            file_name = "data/tweets" + str(counter) + ".txt"
             f = open(file_name, 'w')
             print "opened file: " + file_name
             counter+= 1
