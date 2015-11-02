@@ -2,14 +2,13 @@
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
+
+#import other utilites
 import sys
 import re
 import threading
-import json
-import urllib
 import urllib2
 from BeautifulSoup import BeautifulSoup
-import codecs
 import sys
 import os
 
