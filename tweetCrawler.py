@@ -18,8 +18,8 @@ consumer_secret = "PoAOScmZOWpGkZ6qJoz6tIZn1Q7NdzieoGwQwlQmQsJObQLN5M"
 access_token = "3941462833-jwJS09AoJz1cRTpT7jzjQBJtjLA2ukRjYxzPKGH"
 access_token_secret = "wcGXUWREbycIREGJOk4ZtdnsWDHGXTTG6WLZKlR5ppEaC"
 
-file_name = "data/tweets.txt"
-counter = 1
+counter = 0
+file_name = "data/tweets" + str(counter) + ".txt"
 f = ""
 t1 = ""
 lock = threading.Lock()
@@ -60,6 +60,12 @@ def loookUpLink(match, data):
 
 def appendTitle(title, data):
 
+    if "\"geo_enabled\":false" in data:
+        return
+
+    if  "{\"limit\":" in data:
+        return
+
     global f
 
     k = data.rfind("}")
@@ -73,14 +79,12 @@ def appendTitle(title, data):
         f.write(data)
 
 
-    f.write('\n')
+    #f.write('\n')
     lock.release()
 
 
     # Example usage
 def printTweet(data):
-
-
     #check data here!
     #run all strings inside .html checker
     global t1
@@ -106,7 +110,7 @@ class StdOutListener(StreamListener):
 
     def on_data(self, data):
 
-        global file_name
+        global file_name 
         global f
         global t1
         statinfo = os.stat(file_name)
@@ -123,7 +127,7 @@ class StdOutListener(StreamListener):
             #open new file 
             file_name = "data/tweets" + str(counter) + ".txt"
             f = open(file_name, 'w')
-            print "opened file: " + file_name
+            #print "opened file: " + file_name
             counter+= 1
 
 
@@ -131,11 +135,11 @@ class StdOutListener(StreamListener):
         return True
 
     def on_error(self, status_code):
-		print "Error: " + repr(status_code)
+		#print "Error: " + repr(status_code)
 		return True # False to stop
 
     def on_limit(self, track):
-    	print "!!! Limitation notice received: %s" % str(track)
+    	#print "!!! Limitation notice received: %s" % str(track)
     	return
 
 	# def on_timeout(self):
@@ -143,29 +147,31 @@ class StdOutListener(StreamListener):
 	# 	return True
 
 
-print 'Starting....'
+if __name__ == '__main__':
 
-#FILL TEXT FILE WITH TWEETS
-orig_stdout = sys.stdout
-global file_name
-global f
-f = open(file_name, 'w')
+    print 'Starting....'
 
-print "Starting"
+    #FILL TEXT FILE WITH TWEETS
+    orig_stdout = sys.stdout
+    global file_name
+    global f
+    f = open(file_name, 'w')
 
-l = StdOutListener()
-auth = OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
-stream = Stream(auth, l)
+    print "Starting"
 
-#Filter for all tweets in all locations of the globe
-stream.filter(locations=[-180,-90,180,90])
-# stream.filter(track=['python', 'javascript', 'ruby'])
+    l = StdOutListener()
+    auth = OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+    stream = Stream(auth, l)
+
+    #Filter for all tweets in all locations of the globe
+    stream.filter(locations=[-180,-90,180,90])
+    # stream.filter(track=['python', 'javascript', 'ruby'])
 
 
-sys.stdout = orig_stdout
-f.close()
+    sys.stdout = orig_stdout
+    f.close()
 
-print 'Closed!....'
+    print 'Closed!....'
 
 
