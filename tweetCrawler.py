@@ -20,6 +20,11 @@ access_token_secret = "wcGXUWREbycIREGJOk4ZtdnsWDHGXTTG6WLZKlR5ppEaC"
 
 counter = 0
 file_name = "data/tweets" + str(counter) + ".txt"
+
+while os.path.exists(file_name) :	
+	counter += 1
+	file_name = "data/tweets" + str(counter) + ".txt"
+
 f = ""
 t1 = ""
 lock = threading.Lock()
@@ -73,7 +78,7 @@ def appendTitle(title, data):
     lock.acquire() # thread blocks at this line until it can obtain lock
     
     try:
-        f.write(dataAppended)
+        f.write(dataAppended.encode('utf8'))
 
     except Exception, e:
         f.write(data)
@@ -126,6 +131,9 @@ class StdOutListener(StreamListener):
             global counter
             #open new file 
             file_name = "data/tweets" + str(counter) + ".txt"
+            
+
+
             f = open(file_name, 'w')
             #print "opened file: " + file_name
             counter+= 1

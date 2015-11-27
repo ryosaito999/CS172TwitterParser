@@ -1,9 +1,13 @@
 package twitterSearch ;
 
+import java.util.Date;
+import java.util.Locale;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.StringTokenizer;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -47,10 +51,10 @@ public class run {
 	public static final String INDEX_DIR = "index";
 	
 	public static void main(String[] args) throws CorruptIndexException, IOException {
-		
+
 		int counter = 0;
 		BufferedReader reader = null;
-		String filename = "data/tweets" + Integer.toString(counter)+".txt";
+		String filename = "../data/tweets" + Integer.toString(counter)+".txt";
 		File file = new File(filename);		
 	    
 	    while( file.isFile() ){
@@ -86,6 +90,7 @@ public class run {
 			  if(j_objp != null){
 			  	place = (String) j_objp.get("full_name");
 			  }
+			  
 //		      System.out.println("file: " + filename);
 //			  System.out.println( "username: " + username);
 //			  System.out.println("body: " + body);
@@ -104,10 +109,10 @@ public class run {
 	    }
 		 
 
-		
+		search("a", 5);
+
 		//Tweet page = new Tweet("This is test Title 1", "body of the test web page", "http://www.dummy.edu");
 		//index(page);		
-		//search("test", 5);
 	}
 	
 	public static void readFile(){
@@ -125,23 +130,38 @@ public class run {
 			Document luceneDoc = new Document();
 			
 			Field username = new Field("username", tweet.username, Field.Store.YES, Field.Index.NOT_ANALYZED );
-			username.setBoost(3);
+			username.setBoost(5);
 			luceneDoc.add(username );
 			
-			Field body_text =  new Field("body", tweet.body, Field.Store.YES, Field.Index.ANALYZED);
-			body_text.setBoost(3);
-			luceneDoc.add(body_text );
+			Field body =  new Field("body", tweet.body, Field.Store.YES, Field.Index.ANALYZED);
+			body.setBoost(1);
+			luceneDoc.add(body );
 
 			Field linktitle = new Field("linkTitle", tweet.linkTitle, Field.Store.YES, Field.Index.ANALYZED);
-			linktitle.setBoost(3);
+			linktitle.setBoost(2);
 			luceneDoc.add(linktitle);
 			
 			Field place = new Field("place", tweet.place, Field.Store.YES, Field.Index.ANALYZED);
-			place.setBoost(3);
+			place.setBoost(4);
 			luceneDoc.add(place);
+			
+			
+			//boost based on time of tweet
+			
+			//String date = tweet.time;
+			DateFormat format = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", Locale.ENGLISH);
+			
+			Date tweet_date = format.parse(tweet.time);
+			Date currentDate = format.parse("Tue Dec 1 13:00:00 +0000 2015");
+			
+			long dif = currentDate.getTime() - tweet_date.getTime();
+			float dif_f = (float)dif/100000000;
+			//System.out.println("Dif: " + dif);
 			
 			Field time = new Field("time", tweet.time, Field.Store.YES, Field.Index.NO);
 			luceneDoc.add(time);
+			luceneDoc.setBoost(dif_f);
+			//System.out.println("Boost "+ luceneDoc.getBoost());
 			
 			writer.addDocument(luceneDoc);			
 		} catch (Exception ex) {
@@ -168,15 +188,18 @@ public class run {
 			StringTokenizer strtok = new StringTokenizer(queryString, " ~`!@#$%^&*()_-+={[}]|:;'<>,./?\"\'\\/\n\t\b\f\r");
 			String querytoparse = "";
 			while(strtok.hasMoreElements()) {
-				String token = strtok.nextToken();
-				querytoparse += "text:" + token + "^1" + "title:" + token+ "^1.5";
-				//querytoparse += "text:" + token;
+				String token = strtok.nextToken();				
+				querytoparse += "username:" + token  + "body:" + token  + "linkTitle:" + token +  "place:" + token ;
 			}		
 			Query query = queryparser.parse(querytoparse);
 			//System.out.println(query.toString());
 			TopDocs results = indexSearcher.search(query, topk);
-			System.out.println(results.scoreDocs.length);	
-			System.out.println(indexSearcher.doc(results.scoreDocs[0].doc).getFieldable("text").stringValue());
+			System.out.println(results.scoreDocs.length);
+			
+			System.out.println(indexSearcher.doc(results.scoreDocs[0].doc).getFieldable("username").stringValue());
+			System.out.println(indexSearcher.doc(results.scoreDocs[0].doc).getFieldable("body").stringValue());
+			System.out.println(indexSearcher.doc(results.scoreDocs[0].doc).getFieldable("linkTitle").stringValue());
+			System.out.println(indexSearcher.doc(results.scoreDocs[0].doc).getFieldable("place").stringValue());
 			
 			//https://lucene.apache.org/core/4_0_0/core/org/apache/lucene/document/Field.html#setBoost(float)
 			
