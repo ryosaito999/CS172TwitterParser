@@ -74,7 +74,7 @@ def appendTitle(title, data):
     global f
 
     k = data.rfind("}")
-    dataAppended = data[:k] + ",\"HTML_PAGE_TITLE\": \" " + str(title) + "\"}"  + data[k+1:]
+    dataAppended = data[:k] + ",\"HTML_PAGE_TITLE\":\"" + str(title) + "\"}"  + data[k+1:]
     lock.acquire() # thread blocks at this line until it can obtain lock
     
     try:
